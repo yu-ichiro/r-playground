@@ -4,15 +4,25 @@
 # define any project related variables that should be declared in envrn.sh.
 # (Note: the local .env file will be read to, but this will override it)
 
-export PROJECT_NAME="test-project"
+export PROJECT_NAME="r-playground"
 export VERSION="1.0.0"
 
 # define each task as bash functions
 
-hello() {
-    for name in "$@";do
-        echo "Hello, $name!"
-    done
+build() {
+  docker build -t yuichiroluke/qsstidy:latest . "$@"
+}
+
+r-studio() {
+    docker run -d --rm --name=$PROJECT_NAME \
+        -p 127.0.0.1:8787:8787 \
+        -v $__DIR__:/home/rstudio \
+        -e ROOT=TRUE \
+        -e DISABLE_AUTH=true \
+        yuichiroluke/qsstidy
+    npx wait-on 8787
+    open http://localhost:8787
+    docker attach $PROJECT_NAME
 }
 
 shell() {
@@ -26,7 +36,8 @@ help() {
 Usage: envrn.sh TASK|COMMAND [OPTIONS]
 
 TASK:
-    hello: shows a greeting message for each user
+    build: build the docker image for r-studio
+    r-studio: bootup r-studio
     shell: enters a new shell with .env read into, and __DIR__ added to \$PATH
     help: show this message
 COMMAND:
